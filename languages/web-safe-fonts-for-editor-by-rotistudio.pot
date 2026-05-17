@@ -1,0 +1,46 @@
+# Copyright (C) 2026 RotiStudio - Tamas Rottenbacher
+# This file is distributed under the GPLv2 or later.
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Web-Safe Fonts for Editor by RotiStudio 1.1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/web-safe-fonts-for-editor-by-rotistudio\n"
+"POT-Creation-Date: 2026-05-17 00:00+0100\n"
+"PO-Revision-Date: 2026-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.8\n"
+"X-Domain: web-safe-fonts-for-editor-by-rotistudio\n"
+
+#. Plugin Name of the plugin
+msgid "Web-Safe Fonts for Editor by RotiStudio"
+msgstr ""
+
+#. Description of the plugin
+msgid "Add the option to choose web safe fonts in the WordPress block editor (Gutenberg), so your website can be faster and more consistent appearance."
+msgstr ""
+
+#: web-safe-fonts-for-editor-by-rotistudio.php:366
+msgid "Web Safe Fonts"
+msgstr ""
+
+#: web-safe-fonts-for-editor-by-rotistudio.php:381
+msgid "Select which web safe fonts should be available in the WordPress block editor."
+msgstr ""
+
+#: web-safe-fonts-for-editor-by-rotistudio.php:416
+msgid "license"
+msgstr ""
+
+#: web-safe-fonts-for-editor-by-rotistudio.php:422
+#, php-format
+msgctxt "Alternative font info. 1: font name with style, 2: license link"
+msgid "(Alternative: %1$s &ndash; %2$s)"
+msgstr ""
+
+#: web-safe-fonts-for-editor-by-rotistudio.php:478
+msgid "Settings"
+msgstr ""
