@@ -126,7 +126,7 @@ Then go to `Dashboard → Appearance → Editor → Styles → Typography`, open
 - **Contributors:** rtomo, rotistudio
 - **Tags:** fonts, typography, gutenberg, block editor, editor
 - **Requires at least:** WordPress 5.9
-- **Tested up to:** WordPress 6.9
+- **Tested up to:** WordPress 7.0
 - **Requires PHP:** 7.4
 - **Stable tag:** 1.1.0
 - **License:** GPLv2 or later
