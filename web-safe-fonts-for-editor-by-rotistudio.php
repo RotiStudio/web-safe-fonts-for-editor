@@ -3,7 +3,7 @@
  * Plugin Name: Web-Safe Fonts for Editor by RotiStudio
  * Plugin URI: https://rotistudio.com/plugins/web-safe-fonts-plugin-wordpress/
  * Description: Add the option to choose web safe fonts in the WordPress block editor (Gutenberg), so your website can be faster and more consistent appearance.
- * Version: 1.1.0
+ * Version: 1.2.0
  * Requires at least: 5.9
  * Requires PHP: 7.4
  * Author: RotiStudio - Tamas Rottenbacher
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RSWSFG_VERSION', '1.1.0' );
+define( 'RSWSFG_VERSION', '1.2.0' );
 define( 'RSWSFG_PATH', plugin_dir_path( __FILE__ ) );
 define( 'RSWSFG_URL', plugin_dir_url( __FILE__ ) );
 
@@ -101,10 +101,11 @@ function rswsfg_build_theme_json_font_families() {
 
 		foreach ( $def['faces'] as $face ) {
 			$font_faces[] = array(
-				'fontFamily' => $def['family'],
-				'fontWeight' => $face['weight'],
-				'fontStyle'  => $face['style'],
-				'src'        => array( esc_url_raw( $base_url . $face['file'] ) ),
+				'fontFamily'  => $def['family'],
+				'fontWeight'  => $face['weight'],
+				'fontStyle'   => $face['style'],
+				'fontDisplay' => rswsfg_get_font_display(),
+				'src'         => array( esc_url_raw( $base_url . $face['file'] ) ),
 			);
 		}
 
@@ -155,64 +156,148 @@ function rswsfg_get_font_format( $filename ) {
 }
 
 /**
- * Generates @font-face CSS for all active fonts.
+ * Returns the font-display value used in @font-face rules.
  *
- * Uses local() declarations first so the font file is only downloaded
- * when none of the system fonts are available.
+ * Defaults to swap. Developers can override via the rswsfg_font_display filter.
  *
- * @return string CSS string with @font-face rules.
+ * @return string One of: auto, block, swap, fallback, optional.
  */
-function rswsfg_generate_font_faces_css() {
-	$definitions  = rswsfg_get_font_face_definitions();
-	$active_slugs = rswsfg_get_active_font_slugs();
-	$base_url     = RSWSFG_URL . 'assets/fonts/';
-	$css_parts    = array();
+function rswsfg_get_font_display() {
+	$rswsfg_allowed = array( 'auto', 'block', 'swap', 'fallback', 'optional' );
+	$rswsfg_display = apply_filters( 'rswsfg_font_display', 'swap' );
 
-	foreach ( $active_slugs as $slug ) {
-		if ( ! isset( $definitions[ $slug ] ) ) {
-			continue;
-		}
-
-		$def = $definitions[ $slug ];
-
-		foreach ( $def['faces'] as $face ) {
-			$src_parts = array();
-
-			foreach ( $face['local'] as $local_name ) {
-				$src_parts[] = 'local("' . rswsfg_esc_css_string( $local_name ) . '")';
-			}
-
-			$src_parts[] = sprintf(
-				'url("%s") format("%s")',
-				esc_url( $base_url . $face['file'] ),
-				rswsfg_get_font_format( $face['file'] )
-			);
-
-			$css_parts[] = sprintf(
-				'@font-face { font-family: "%s"; src: %s; font-weight: %s; font-style: %s; font-display: swap; }',
-				rswsfg_esc_css_string( $def['family'] ),
-				implode( ', ', $src_parts ),
-				$face['weight'],
-				$face['style']
-			);
-		}
+	if ( ! is_string( $rswsfg_display ) ) {
+		return 'swap';
 	}
 
-	return implode( "\n", $css_parts );
+	$rswsfg_display = strtolower( sanitize_key( $rswsfg_display ) );
+
+	if ( ! in_array( $rswsfg_display, $rswsfg_allowed, true ) ) {
+		return 'swap';
+	}
+
+	return $rswsfg_display;
 }
 
 /**
- * Enqueue web safe font CSS for the front end and the block editor.
+ * Returns a path marker used to detect plugin-hosted font files.
+ *
+ * @return string Relative path fragment inside font src URLs.
+ */
+function rswsfg_get_plugin_font_src_marker() {
+	return 'web-safe-fonts-for-editor-by-rotistudio/assets/fonts/';
+}
+
+/**
+ * Checks whether a fontFace entry loads a file from this plugin.
+ *
+ * @param array $rswsfg_face Font face definition (theme.json shape).
+ * @return bool True when src points at this plugin's fonts.
+ */
+function rswsfg_font_face_src_is_plugin( $rswsfg_face ) {
+	if ( empty( $rswsfg_face['src'] ) ) {
+		return false;
+	}
+
+	$rswsfg_marker = rswsfg_get_plugin_font_src_marker();
+
+	foreach ( (array) $rswsfg_face['src'] as $rswsfg_src ) {
+		if ( is_string( $rswsfg_src ) && false !== strpos( $rswsfg_src, $rswsfg_marker ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Removes plugin-hosted font faces from user global styles at runtime.
+ *
+ * Activating a theme font in the Site Editor Font Manager copies faces into
+ * the user theme.json without fontDisplay (WordPress then prints fallback).
+ * Those copies also duplicate the faces already registered via the theme
+ * filter. Active fonts are provided by wp_theme_json_data_theme instead.
+ *
+ * @param WP_Theme_JSON_Data $theme_json Theme JSON data object.
+ * @return WP_Theme_JSON_Data Filtered theme JSON data.
+ */
+function rswsfg_filter_user_theme_json_fonts( $theme_json ) {
+	$rswsfg_data = $theme_json->get_data();
+
+	if ( empty( $rswsfg_data['settings']['typography']['fontFamilies'] ) || ! is_array( $rswsfg_data['settings']['typography']['fontFamilies'] ) ) {
+		return $theme_json;
+	}
+
+	$rswsfg_families_root = $rswsfg_data['settings']['typography']['fontFamilies'];
+
+	if ( isset( $rswsfg_families_root['custom'] ) && is_array( $rswsfg_families_root['custom'] ) ) {
+		$rswsfg_families = $rswsfg_families_root['custom'];
+	} elseif ( isset( $rswsfg_families_root[0] ) || empty( $rswsfg_families_root ) ) {
+		$rswsfg_families = $rswsfg_families_root;
+	} else {
+		return $theme_json;
+	}
+
+	$rswsfg_changed      = false;
+	$rswsfg_new_families = array();
+
+	foreach ( $rswsfg_families as $rswsfg_family ) {
+		if ( empty( $rswsfg_family['fontFace'] ) || ! is_array( $rswsfg_family['fontFace'] ) ) {
+			$rswsfg_new_families[] = $rswsfg_family;
+			continue;
+		}
+
+		$rswsfg_has_plugin_face = false;
+		$rswsfg_new_faces       = array();
+
+		foreach ( $rswsfg_family['fontFace'] as $rswsfg_face ) {
+			if ( rswsfg_font_face_src_is_plugin( $rswsfg_face ) ) {
+				$rswsfg_has_plugin_face = true;
+				$rswsfg_changed         = true;
+				continue;
+			}
+
+			$rswsfg_new_faces[] = $rswsfg_face;
+		}
+
+		if ( $rswsfg_has_plugin_face && empty( $rswsfg_new_faces ) ) {
+			continue;
+		}
+
+		if ( $rswsfg_has_plugin_face ) {
+			$rswsfg_family['fontFace'] = $rswsfg_new_faces;
+		}
+
+		$rswsfg_new_families[] = $rswsfg_family;
+	}
+
+	if ( ! $rswsfg_changed ) {
+		return $theme_json;
+	}
+
+	return $theme_json->update_with(
+		array(
+			'version'  => isset( $rswsfg_data['version'] ) ? $rswsfg_data['version'] : 2,
+			'settings' => array(
+				'typography' => array(
+					'fontFamilies' => $rswsfg_new_families,
+				),
+			),
+		)
+	);
+}
+add_filter( 'wp_theme_json_data_user', 'rswsfg_filter_user_theme_json_fonts', 20 );
+
+/**
+ * Enqueue web safe font family utility CSS for the front end and the block editor.
+ *
+ * @font-face rules are printed by WordPress into wp-fonts-local from theme.json.
+ * This callback only adds the .has-{slug}-font-family utility classes.
  *
  * @return void
  */
 function rswsfg_enqueue_fonts_css() {
 	$css_parts = array();
-
-	$font_faces = rswsfg_generate_font_faces_css();
-	if ( $font_faces ) {
-		$css_parts[] = $font_faces;
-	}
 
 	foreach ( rswsfg_get_active_font_families() as $font ) {
 		$css_parts[] = sprintf(
@@ -325,17 +410,19 @@ function rswsfg_enqueue_admin_fonts_css() {
 		return;
 	}
 
-	$base_url  = RSWSFG_URL . 'assets/fonts/';
-	$css_parts = array();
+	$base_url     = RSWSFG_URL . 'assets/fonts/';
+	$font_display = rswsfg_get_font_display();
+	$css_parts    = array();
 
 	foreach ( rswsfg_get_alt_font_files() as $alt_name => $file ) {
 		$escaped_name = rswsfg_esc_css_string( $alt_name );
 		$css_parts[]  = sprintf(
-			'@font-face { font-family: "%s"; src: local("%s"), url("%s") format("%s"); font-weight: 400; font-style: normal; font-display: swap; }',
+			'@font-face { font-family: "%s"; src: local("%s"), url("%s") format("%s"); font-weight: 400; font-style: normal; font-display: %s; }',
 			$escaped_name,
 			$escaped_name,
 			esc_url( $base_url . $file ),
-			rswsfg_get_font_format( $file )
+			rswsfg_get_font_format( $file ),
+			$font_display
 		);
 	}
 

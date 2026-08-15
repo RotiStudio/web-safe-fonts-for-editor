@@ -2,9 +2,9 @@
 Contributors: rtomo, rotistudio
 Tags: fonts, typography, gutenberg, block editor, editor
 Requires at least: 5.9
-Tested up to: 6.9
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://rotistudio.com/contact/
@@ -62,6 +62,7 @@ The plugin registers the font families in the theme.json data layer via the `wp_
 
 Do you have other plugins? Yes, check my plugins website: [rotistudio.com](https://rotistudio.com/)
 Where can we learn more about your work? Check my personal website there: [rottenbacher.hu](https://rottenbacher.hu/)
+Development / source code: [GitHub repository](https://github.com/rotisoft/web-safe-fonts-for-editor)
 
 == Installation ==
 
@@ -93,6 +94,10 @@ Yes. The plugin uses the standard `wp_theme_json_data_theme` filter, which is th
 First, go to Dashboard / Settings / Writing, select the desired font checkbox, and save.
 Then go to Dashboard / Appearance / Editor / Styles / Typography, and the Fonts list, and activate the required variant.
 
+= Can I change the font-display value? =
+
+Yes. By default the plugin uses `font-display: swap`. Developers can override it with the `rswsfg_font_display` filter (`auto`, `block`, `swap`, `fallback`, or `optional`).
+
 == Screenshots ==
 
 1. Web safe fonts listed in the block editor Typography panel.
@@ -100,6 +105,10 @@ Then go to Dashboard / Appearance / Editor / Styles / Typography, and the Fonts 
 3. The options to enable the fonts.
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+* font-display swap, developer filter, duplicate font-face fix.
+* Tested up to WordPress 7.1.
 
 = 1.1.0 =
 * Minor bug fix.
@@ -109,6 +118,13 @@ Then go to Dashboard / Appearance / Editor / Styles / Typography, and the Fonts 
 * Initial release.
 
 == Changelog ==
+
+= 1.2.0 =
+* Use font-display: swap by default.
+* Add rswsfg_font_display filter.
+* Fix duplicate @font-face output.
+* Fix Site Editor copies forcing fallback.
+* Tested up to WordPress 7.1.
 
 = 1.1.0 =
 * Minor bug fix.
