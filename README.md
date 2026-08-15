@@ -93,13 +93,18 @@ First, go to `Dashboard → Settings → Writing`, select the desired font check
 
 Then go to `Dashboard → Appearance → Editor → Styles → Typography`, open the Fonts list, and activate the required variant.
 
-## Screenshots
+### Can I change the font-display value?
 
-1. Web safe fonts listed in the block editor Typography panel.
-2. A header block with a web safe font applied in the editor.
-3. The options to enable the fonts.
+Yes. By default the plugin uses `font-display: swap`. Developers can override it with the `rswsfg_font_display` filter (`auto`, `block`, `swap`, `fallback`, or `optional`).
 
 ## Upgrade Notice
+
+### 1.2.0 
+- Use font-display: swap by default.
+- Add rswsfg_font_display filter.
+- Fix duplicate @font-face output.
+- Fix Site Editor copies forcing fallback.
+- Tested up to WordPress 7.1.
 
 ### 1.1.0
 
@@ -126,9 +131,9 @@ Then go to `Dashboard → Appearance → Editor → Styles → Typography`, open
 - **Contributors:** rtomo, rotistudio
 - **Tags:** fonts, typography, gutenberg, block editor, editor
 - **Requires at least:** WordPress 5.9
-- **Tested up to:** WordPress 7.0
+- **Tested up to:** WordPress 7.1
 - **Requires PHP:** 7.4
-- **Stable tag:** 1.1.0
+- **Stable tag:** 1.2.0
 - **License:** GPLv2 or later
 - **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 - **Donate link:** https://rotistudio.com/contact/
