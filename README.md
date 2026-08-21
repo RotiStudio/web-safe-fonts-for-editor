@@ -12,6 +12,16 @@ Web safe fonts are pre-installed on Windows, Linux operating systems, which mean
 
 We have a Plan B! When a visitor uses a different operating system or device, the plugin loads the same or an alternative font, so the design won’t change.
 
+## Plugin Information
+
+| | |
+| --- | --- |
+| **Requires WordPress** | 5.9+ |
+| **Tested up to** | 7.1 |
+| **Requires PHP** | 7.4+ |
+| **Stable tag** | 1.2.0 |
+| **License** | [GPLv2 or later](https://www.gnu.org/licenses/gpl-2.0.html) |
+
 ### Available Fonts
 
 #### Sans-serif
@@ -97,43 +107,6 @@ Then go to `Dashboard → Appearance → Editor → Styles → Typography`, open
 
 Yes. By default the plugin uses `font-display: swap`. Developers can override it with the `rswsfg_font_display` filter (`auto`, `block`, `swap`, `fallback`, or `optional`).
 
-## Upgrade Notice
-
-### 1.2.0 
-- Use font-display: swap by default.
-- Add rswsfg_font_display filter.
-- Fix duplicate @font-face output.
-- Fix Site Editor copies forcing fallback.
-- Tested up to WordPress 7.1.
-
-### 1.1.0
-
-- Minor bug fix.
-- Replace FreeSans to CabinCondensed for Trebuchet MS alternative.
-
-### 1.0.0
-
-- Initial release.
-
 ## Changelog
 
-### 1.1.0
-
-- Minor bug fix.
-- Replace FreeSans to CabinCondensed for Trebuchet MS alternative.
-
-### 1.0.0
-
-- Initial release. 15 web safe font families added to the WordPress block editor.
-
-## Plugin Information
-
-- **Contributors:** rtomo, rotistudio
-- **Tags:** fonts, typography, gutenberg, block editor, editor
-- **Requires at least:** WordPress 5.9
-- **Tested up to:** WordPress 7.1
-- **Requires PHP:** 7.4
-- **Stable tag:** 1.2.0
-- **License:** GPLv2 or later
-- **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
-- **Donate link:** https://rotistudio.com/contact/
+Full changelog on WordPress.org: [Changelog - Web-Safe Fonts for Editor](https://wordpress.org/plugins/web-safe-fonts-for-editor-by-rotistudio/#developers)
