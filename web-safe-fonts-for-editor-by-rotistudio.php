@@ -3,7 +3,7 @@
  * Plugin Name: Web-Safe Fonts for Editor by RotiStudio
  * Plugin URI: https://rotistudio.com/plugins/web-safe-fonts-plugin-wordpress/
  * Description: Add the option to choose web safe fonts in the WordPress block editor (Gutenberg), so your website can be faster and more consistent appearance.
- * Version: 1.2.0
+ * Version: 1.3.0
  * Requires at least: 6.5
  * Requires PHP: 7.4
  * Author: RotiStudio - Tamas Rottenbacher
@@ -19,27 +19,46 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RSWSFG_VERSION', '1.2.0' );
+define( 'RSWSFG_VERSION', '1.3.0' );
+define( 'RSWSFG_PREVIEW_MAX_LENGTH', 60 );
 define( 'RSWSFG_PATH', plugin_dir_path( __FILE__ ) );
 define( 'RSWSFG_URL', plugin_dir_url( __FILE__ ) );
 
 require_once RSWSFG_PATH . 'font-definitions.php';
 
 /**
- * Returns the active font slugs saved in options.
+ * Returns the font slugs saved in one of the plugin's options.
  *
- * No font is active until the option has been saved.
- *
- * @return array<int, string> Active font slugs.
+ * @param string $rswsfg_option Option name.
+ * @return array<int, string> Saved font slugs, empty until the option is saved.
  */
-function rswsfg_get_active_font_slugs() {
-	$rswsfg_saved = get_option( 'rswsfg_active_fonts', array() );
+function rswsfg_get_saved_font_slugs( $rswsfg_option ) {
+	$rswsfg_saved = get_option( $rswsfg_option, array() );
 
 	if ( ! is_array( $rswsfg_saved ) ) {
 		return array();
 	}
 
 	return array_values( array_filter( $rswsfg_saved, 'is_string' ) );
+}
+
+/**
+ * Returns the active font slugs saved in options.
+ *
+ * @return array<int, string> Active font slugs.
+ */
+function rswsfg_get_active_font_slugs() {
+	return rswsfg_get_saved_font_slugs( 'rswsfg_active_fonts' );
+}
+
+/**
+ * Returns the slugs of the fonts marked for preloading on a device type.
+ *
+ * @param string $rswsfg_device Device type: mobile or desktop.
+ * @return array<int, string> Font slugs to preload.
+ */
+function rswsfg_get_preload_font_slugs( $rswsfg_device ) {
+	return rswsfg_get_saved_font_slugs( 'mobile' === $rswsfg_device ? 'rswsfg_preload_mobile_fonts' : 'rswsfg_preload_desktop_fonts' );
 }
 
 /**
@@ -160,13 +179,63 @@ function rswsfg_font_face_src_is_plugin( $rswsfg_face ) {
 }
 
 /**
+ * Removes the font faces hosted by this plugin from a list of font families.
+ *
+ * @param array $rswsfg_families      Font families (theme.json shape).
+ * @param bool  $rswsfg_keep_families Whether a family left without faces is kept.
+ * @param bool  $rswsfg_changed       Set to true when a face was removed.
+ * @return array Font families without the plugin-hosted faces.
+ */
+function rswsfg_remove_plugin_font_faces( $rswsfg_families, $rswsfg_keep_families, &$rswsfg_changed ) {
+	$rswsfg_new_families = array();
+
+	foreach ( $rswsfg_families as $rswsfg_family ) {
+		if ( empty( $rswsfg_family['fontFace'] ) || ! is_array( $rswsfg_family['fontFace'] ) ) {
+			$rswsfg_new_families[] = $rswsfg_family;
+			continue;
+		}
+
+		$rswsfg_new_faces = array();
+
+		foreach ( $rswsfg_family['fontFace'] as $rswsfg_face ) {
+			if ( ! rswsfg_font_face_src_is_plugin( $rswsfg_face ) ) {
+				$rswsfg_new_faces[] = $rswsfg_face;
+			}
+		}
+
+		if ( count( $rswsfg_new_faces ) === count( $rswsfg_family['fontFace'] ) ) {
+			$rswsfg_new_families[] = $rswsfg_family;
+			continue;
+		}
+
+		$rswsfg_changed = true;
+
+		if ( ! empty( $rswsfg_new_faces ) ) {
+			$rswsfg_family['fontFace'] = $rswsfg_new_faces;
+		} elseif ( $rswsfg_keep_families ) {
+			unset( $rswsfg_family['fontFace'] );
+		} else {
+			continue;
+		}
+
+		$rswsfg_new_families[] = $rswsfg_family;
+	}
+
+	return $rswsfg_new_families;
+}
+
+/**
  * Removes plugin-hosted font faces from user global styles at runtime.
  *
  * Earlier versions registered their faces in theme.json, and activating such
- * a font in the Site Editor Font Manager copied the faces into the user
+ * a font in the Site Editor Font Library copied the faces into the user
  * theme.json. WordPress prints those copies under the real font name, which
  * replaces the installed font. The faces come from
  * rswsfg_enqueue_font_faces() instead.
+ *
+ * The user data keeps the activated theme fonts under the "theme" key and the
+ * installed fonts under "custom". A family under "theme" stays in the list
+ * without its faces, because removing it there would deactivate the font.
  *
  * @param WP_Theme_JSON_Data $theme_json Theme JSON data object.
  * @return WP_Theme_JSON_Data Filtered theme JSON data.
@@ -179,46 +248,22 @@ function rswsfg_filter_user_theme_json_fonts( $theme_json ) {
 	}
 
 	$rswsfg_families_root = $rswsfg_data['settings']['typography']['fontFamilies'];
+	$rswsfg_changed       = false;
 
-	if ( isset( $rswsfg_families_root['custom'] ) && is_array( $rswsfg_families_root['custom'] ) ) {
-		$rswsfg_families = $rswsfg_families_root['custom'];
-	} elseif ( isset( $rswsfg_families_root[0] ) ) {
-		$rswsfg_families = $rswsfg_families_root;
+	if ( isset( $rswsfg_families_root[0] ) ) {
+		$rswsfg_new_root = rswsfg_remove_plugin_font_faces( $rswsfg_families_root, false, $rswsfg_changed );
 	} else {
-		return $theme_json;
-	}
+		$rswsfg_new_root = array();
 
-	$rswsfg_changed      = false;
-	$rswsfg_new_families = array();
-
-	foreach ( $rswsfg_families as $rswsfg_family ) {
-		if ( empty( $rswsfg_family['fontFace'] ) || ! is_array( $rswsfg_family['fontFace'] ) ) {
-			$rswsfg_new_families[] = $rswsfg_family;
-			continue;
-		}
-
-		$rswsfg_has_plugin_face = false;
-		$rswsfg_new_faces       = array();
-
-		foreach ( $rswsfg_family['fontFace'] as $rswsfg_face ) {
-			if ( rswsfg_font_face_src_is_plugin( $rswsfg_face ) ) {
-				$rswsfg_has_plugin_face = true;
-				$rswsfg_changed         = true;
-				continue;
+		foreach ( array( 'theme', 'custom' ) as $rswsfg_origin ) {
+			if ( isset( $rswsfg_families_root[ $rswsfg_origin ] ) && is_array( $rswsfg_families_root[ $rswsfg_origin ] ) ) {
+				$rswsfg_new_root[ $rswsfg_origin ] = rswsfg_remove_plugin_font_faces(
+					$rswsfg_families_root[ $rswsfg_origin ],
+					'theme' === $rswsfg_origin,
+					$rswsfg_changed
+				);
 			}
-
-			$rswsfg_new_faces[] = $rswsfg_face;
 		}
-
-		if ( $rswsfg_has_plugin_face && empty( $rswsfg_new_faces ) ) {
-			continue;
-		}
-
-		if ( $rswsfg_has_plugin_face ) {
-			$rswsfg_family['fontFace'] = $rswsfg_new_faces;
-		}
-
-		$rswsfg_new_families[] = $rswsfg_family;
 	}
 
 	if ( ! $rswsfg_changed ) {
@@ -230,7 +275,7 @@ function rswsfg_filter_user_theme_json_fonts( $theme_json ) {
 			'version'  => isset( $rswsfg_data['version'] ) ? $rswsfg_data['version'] : 2,
 			'settings' => array(
 				'typography' => array(
-					'fontFamilies' => $rswsfg_new_families,
+					'fontFamilies' => $rswsfg_new_root,
 				),
 			),
 		)
@@ -239,18 +284,17 @@ function rswsfg_filter_user_theme_json_fonts( $theme_json ) {
 add_filter( 'wp_theme_json_data_user', 'rswsfg_filter_user_theme_json_fonts', 20 );
 
 /**
- * Builds the @font-face rules of the active fonts.
+ * Builds the @font-face rules of the given fonts.
  *
  * Every rule uses the font's own "-safe" family name, which the font-family
  * stack lists after the real font name. The browser therefore uses the
  * installed web-safe font first, then a local() match of the same font or its
  * alternative, and downloads the woff2 file only when none of them exists.
  *
- * @return string CSS, empty when no font is active.
+ * @param array<string, array<string, mixed>> $rswsfg_fonts Font definitions.
+ * @return string CSS, empty when the list is empty.
  */
-function rswsfg_get_font_face_css() {
-	$rswsfg_fonts = rswsfg_get_active_fonts();
-
+function rswsfg_get_font_face_css( $rswsfg_fonts ) {
 	if ( empty( $rswsfg_fonts ) ) {
 		return '';
 	}
@@ -291,7 +335,7 @@ function rswsfg_get_font_face_css() {
  * @return void
  */
 function rswsfg_enqueue_font_faces() {
-	$rswsfg_css = rswsfg_get_font_face_css();
+	$rswsfg_css = rswsfg_get_font_face_css( rswsfg_get_active_fonts() );
 
 	if ( '' === $rswsfg_css ) {
 		return;
@@ -304,99 +348,179 @@ function rswsfg_enqueue_font_faces() {
 add_action( 'enqueue_block_assets', 'rswsfg_enqueue_font_faces', 20 );
 
 /**
- * Outputs <link rel="preload"> tags for the regular-weight fallback woff2 files
- * of each active font, but only on mobile devices (via wp_is_mobile()).
+ * Returns the woff2 file to preload for a font.
  *
- * Mobile browsers (Android in particular) typically lack web-safe system fonts,
- * so preloading the fallback woff2 reduces the time-to-first-render of styled text.
- * Desktop systems (Windows, macOS) usually have these fonts installed locally,
- * making preload unnecessary and wasteful there.
+ * @param array<string, mixed> $rswsfg_font Font definition.
+ * @return string File name of the regular face, or of the first face when
+ *                the font has no regular one (Arial Black, Impact).
+ */
+function rswsfg_get_preload_file( $rswsfg_font ) {
+	foreach ( $rswsfg_font['faces'] as $rswsfg_face ) {
+		if ( '400' === $rswsfg_face['weight'] && 'normal' === $rswsfg_face['style'] ) {
+			return $rswsfg_face['file'];
+		}
+	}
+
+	return $rswsfg_font['faces'][0]['file'];
+}
+
+/**
+ * Outputs <link rel="preload"> tags for the fonts that are both active and
+ * marked for preloading on the visitor's device type on the settings page.
  *
- * Only the 400/normal variant is preloaded - it covers the most common rendering
- * path. Duplicate woff2 files shared by multiple font families are output once.
+ * The device type comes from wp_is_mobile(). Mobile browsers (Android in
+ * particular) typically lack web-safe system fonts, so preloading the fallback
+ * woff2 reduces the time-to-first-render of styled text. Desktop systems
+ * (Windows, macOS) usually have these fonts installed, so a preload there
+ * downloads a file the browser may not need.
+ *
+ * One file per font is preloaded, see rswsfg_get_preload_file(). A woff2 file
+ * shared by several fonts is output once.
  *
  * @return void
  */
 function rswsfg_output_font_preloads() {
-	if ( ! wp_is_mobile() ) {
-		return;
-	}
+	$rswsfg_fonts = array_intersect_key(
+		rswsfg_get_active_fonts(),
+		array_flip( rswsfg_get_preload_font_slugs( wp_is_mobile() ? 'mobile' : 'desktop' ) )
+	);
 
-	$rswsfg_base_url   = RSWSFG_URL . 'assets/fonts/';
-	$rswsfg_seen_files = array();
+	$rswsfg_base_url = RSWSFG_URL . 'assets/fonts/';
+	$rswsfg_files    = array_unique( array_map( 'rswsfg_get_preload_file', $rswsfg_fonts ) );
 
-	foreach ( rswsfg_get_active_fonts() as $rswsfg_font ) {
-		foreach ( $rswsfg_font['faces'] as $rswsfg_face ) {
-			if ( '400' !== $rswsfg_face['weight'] || 'normal' !== $rswsfg_face['style'] ) {
-				continue;
-			}
-
-			$rswsfg_file = $rswsfg_face['file'];
-
-			if ( in_array( $rswsfg_file, $rswsfg_seen_files, true ) ) {
-				continue;
-			}
-
-			$rswsfg_seen_files[] = $rswsfg_file;
-
-			printf(
-				'<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n",
-				esc_url( $rswsfg_base_url . $rswsfg_file )
-			);
-		}
+	foreach ( $rswsfg_files as $rswsfg_file ) {
+		printf(
+			'<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n",
+			esc_url( $rswsfg_base_url . $rswsfg_file )
+		);
 	}
 }
 add_action( 'wp_head', 'rswsfg_output_font_preloads', 2 );
 
 /**
- * Enqueue @font-face preview CSS on the Settings > Writing admin page.
+ * Enqueues the preview CSS and script on the Settings > Writing admin page.
  *
- * One rule per alternative font, so its name can be shown in its own
- * typeface. local() tries the installed alternative first; the regular woff2
- * file is downloaded only when it is missing.
+ * The CSS holds the @font-face rules of every font, so each row is shown as
+ * it will render for visitors, one rule per alternative font, so its name can
+ * be shown in its own typeface, and the layout of the font table.
  *
  * @return void
  */
-function rswsfg_enqueue_admin_fonts_css() {
+function rswsfg_enqueue_admin_assets() {
 	$rswsfg_screen = get_current_screen();
 
 	if ( ! $rswsfg_screen || 'options-writing' !== $rswsfg_screen->id ) {
 		return;
 	}
 
+	$rswsfg_fonts     = rswsfg_get_fonts();
 	$rswsfg_base_url  = RSWSFG_URL . 'assets/fonts/';
 	$rswsfg_display   = rswsfg_get_font_display();
-	$rswsfg_css_parts = array();
+	$rswsfg_alt_rules = array();
 
-	foreach ( rswsfg_get_fonts() as $rswsfg_font ) {
+	foreach ( $rswsfg_fonts as $rswsfg_font ) {
 		// Several fonts share an alternative; the key keeps one rule per alternative.
-		$rswsfg_css_parts[ $rswsfg_font['altName'] ] = sprintf(
-			'@font-face { font-family: "%1$s"; src: local("%1$s"), url("%2$s") format("woff2"); font-weight: 400; font-style: normal; font-display: %3$s; }',
+		$rswsfg_alt_rules[ $rswsfg_font['altName'] ] = sprintf(
+			'@font-face{font-family:"%1$s";font-style:normal;font-weight:400;font-display:%3$s;src:local("%1$s"),url("%2$s") format("woff2");}',
 			$rswsfg_font['altName'],
 			esc_url_raw( $rswsfg_base_url . $rswsfg_font['altFile'] ),
 			$rswsfg_display
 		);
 	}
 
+	$rswsfg_css_parts = array(
+		rswsfg_get_font_face_css( $rswsfg_fonts ),
+		implode( "\n", $rswsfg_alt_rules ),
+		'.rswsfg-fonts{max-width:1100px;margin-top:8px;}',
+		'.rswsfg-fonts td,.rswsfg-fonts th{vertical-align:middle;}',
+		'.rswsfg-fonts .rswsfg-font-name{font-size:16px;white-space:nowrap;}',
+		'.rswsfg-fonts .rswsfg-font-name span{padding-left:6px;}',
+		'.rswsfg-fonts .rswsfg-font-preview{font-size:16px;overflow-wrap:anywhere;}',
+		'.rswsfg-fonts .rswsfg-font-preload{text-align:center;}',
+	);
+
 	wp_add_inline_style( 'wp-admin', implode( "\n", $rswsfg_css_parts ) );
+
+	// Copies the preview text into every font row while the user types.
+	$rswsfg_script = '( function () {'
+		. 'var input = document.getElementById( "rswsfg-preview-text" );'
+		. 'if ( ! input ) { return; }'
+		. 'var targets = document.querySelectorAll( ".rswsfg-font-preview" );'
+		. 'input.addEventListener( "input", function () {'
+		. 'var text = input.value.slice( 0, input.maxLength );'
+		. 'targets.forEach( function ( target ) { target.textContent = text; } );'
+		. '} );'
+		. '} )();';
+
+	wp_register_script( 'rswsfg-admin', false, array(), RSWSFG_VERSION, true );
+	wp_enqueue_script( 'rswsfg-admin' );
+	wp_add_inline_script( 'rswsfg-admin', $rswsfg_script );
 }
-add_action( 'admin_enqueue_scripts', 'rswsfg_enqueue_admin_fonts_css', 20 );
+add_action( 'admin_enqueue_scripts', 'rswsfg_enqueue_admin_assets', 20 );
 
 /**
- * Register the setting and its section on the Writing settings page.
+ * Adds a "Web Safe Fonts" link after the tabs of the Appearance > Fonts screen.
+ *
+ * The screen (WordPress 7.0+) builds its tabs in JavaScript and has no
+ * extension point, so a small script appends the link to the rendered tab
+ * list. When the markup of the screen changes, the link is simply not added.
+ *
+ * @param string $hook_suffix Current admin page.
+ * @return void
+ */
+function rswsfg_enqueue_font_library_link( $hook_suffix ) {
+	if ( 'font-library.php' !== $hook_suffix || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	$rswsfg_data = array(
+		'url'   => admin_url( 'options-writing.php#rswsfg-fonts-section' ),
+		'label' => __( 'Web Safe Fonts', 'web-safe-fonts-for-editor-by-rotistudio' ),
+	);
+
+	$rswsfg_script = '( function () {'
+		. 'var data = window.rswsfgFontLibrary;'
+		. 'function addLink() {'
+		. 'if ( document.getElementById( "rswsfg-font-library-link" ) ) { return; }'
+		. 'var list = document.querySelector( ".font-library-page__tablist [role=\'tablist\']" );'
+		. 'if ( ! list ) { return; }'
+		. 'var tab = list.querySelector( "[role=\'tab\']:not([aria-selected=\'true\'])" ) || list.querySelector( "[role=\'tab\']" );'
+		. 'var link = document.createElement( "a" );'
+		. 'link.id = "rswsfg-font-library-link";'
+		. 'link.href = data.url;'
+		. 'link.textContent = data.label;'
+		. 'if ( tab ) { link.className = tab.className; }'
+		. 'link.style.textDecoration = "none";'
+		. 'list.appendChild( link );'
+		. '}'
+		. 'addLink();'
+		. 'new MutationObserver( addLink ).observe( document.body, { childList: true, subtree: true } );'
+		. '} )();';
+
+	wp_register_script( 'rswsfg-font-library', false, array(), RSWSFG_VERSION, true );
+	wp_enqueue_script( 'rswsfg-font-library' );
+	wp_add_inline_script( 'rswsfg-font-library', 'var rswsfgFontLibrary = ' . wp_json_encode( $rswsfg_data ) . ';', 'before' );
+	wp_add_inline_script( 'rswsfg-font-library', $rswsfg_script );
+}
+add_action( 'admin_enqueue_scripts', 'rswsfg_enqueue_font_library_link', 20 );
+
+/**
+ * Register the settings and their section on the Writing settings page.
  *
  * @return void
  */
 function rswsfg_register_settings() {
-	register_setting(
-		'writing',
-		'rswsfg_active_fonts',
-		array(
-			'type'              => 'array',
-			'sanitize_callback' => 'rswsfg_sanitize_active_fonts',
-			'default'           => array(),
-		)
-	);
+	foreach ( array( 'rswsfg_active_fonts', 'rswsfg_preload_mobile_fonts', 'rswsfg_preload_desktop_fonts' ) as $rswsfg_option ) {
+		register_setting(
+			'writing',
+			$rswsfg_option,
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => 'rswsfg_sanitize_font_slugs',
+				'default'           => array(),
+			)
+		);
+	}
 
 	add_settings_section(
 		'rswsfg_fonts_section',
@@ -408,7 +532,9 @@ function rswsfg_register_settings() {
 add_action( 'admin_init', 'rswsfg_register_settings', 10 );
 
 /**
- * Renders the section description and the font checkboxes.
+ * Renders the section description, the preview text field and the font rows.
+ *
+ * The preview field has no name attribute, so its value is not submitted.
  *
  * @return void
  */
@@ -417,18 +543,44 @@ function rswsfg_section_callback() {
 		'<p id="rswsfg-fonts-section">%s</p>',
 		esc_html__( 'Select which web safe fonts should be available in the WordPress block editor.', 'web-safe-fonts-for-editor-by-rotistudio' )
 	);
-	rswsfg_render_font_checkboxes();
+
+	printf(
+		'<p class="description">%s</p>',
+		esc_html__( 'Preload: the font file of a selected font is requested early, in the page head, on the chosen device type. Turn it on only for fonts used on most pages. Desktop devices usually have these fonts installed, so a preload is rarely needed there.', 'web-safe-fonts-for-editor-by-rotistudio' )
+	);
+
+	printf(
+		'<p><label for="rswsfg-preview-text"><strong>%1$s</strong></label><br>'
+		. '<input type="text" id="rswsfg-preview-text" class="regular-text" maxlength="%2$d" autocomplete="off" aria-describedby="rswsfg-preview-text-description"> '
+		. '<span class="description" id="rswsfg-preview-text-description">%3$s</span></p>',
+		esc_html__( 'Preview text', 'web-safe-fonts-for-editor-by-rotistudio' ),
+		(int) RSWSFG_PREVIEW_MAX_LENGTH,
+		esc_html(
+			sprintf(
+				/* translators: %d: maximum number of characters. */
+				__( 'Type up to %d characters to see them in every font below. The text is not saved.', 'web-safe-fonts-for-editor-by-rotistudio' ),
+				(int) RSWSFG_PREVIEW_MAX_LENGTH
+			)
+		)
+	);
+
+	rswsfg_render_font_rows();
 }
 
 /**
- * Renders the font checkboxes.
+ * Renders the font table. One row per font: the font checkbox, the preview
+ * text, the alternative font with its licence and the two preload checkboxes.
  *
  * @return void
  */
-function rswsfg_render_font_checkboxes() {
-	$rswsfg_active_slugs = rswsfg_get_active_font_slugs();
-	$rswsfg_licences_url = RSWSFG_URL . 'assets/licences/';
-	$rswsfg_fonts        = rswsfg_get_fonts();
+function rswsfg_render_font_rows() {
+	$rswsfg_active_slugs  = rswsfg_get_active_font_slugs();
+	$rswsfg_mobile_slugs  = rswsfg_get_preload_font_slugs( 'mobile' );
+	$rswsfg_desktop_slugs = rswsfg_get_preload_font_slugs( 'desktop' );
+	$rswsfg_licences_url  = RSWSFG_URL . 'assets/licences/';
+	$rswsfg_fonts         = rswsfg_get_fonts();
+	$rswsfg_mobile_label  = __( 'Preload on mobile', 'web-safe-fonts-for-editor-by-rotistudio' );
+	$rswsfg_desktop_label = __( 'Preload on desktop', 'web-safe-fonts-for-editor-by-rotistudio' );
 
 	uasort(
 		$rswsfg_fonts,
@@ -437,9 +589,19 @@ function rswsfg_render_font_checkboxes() {
 		}
 	);
 
-	foreach ( $rswsfg_fonts as $rswsfg_slug => $rswsfg_font ) {
-		$rswsfg_checked = in_array( $rswsfg_slug, $rswsfg_active_slugs, true );
+	printf(
+		'<table class="widefat striped rswsfg-fonts"><thead><tr>'
+		. '<th scope="col">%1$s</th><th scope="col">%2$s</th><th scope="col">%3$s</th>'
+		. '<th scope="col" class="rswsfg-font-preload">%4$s</th><th scope="col" class="rswsfg-font-preload">%5$s</th>'
+		. '</tr></thead><tbody>',
+		esc_html__( 'Font', 'web-safe-fonts-for-editor-by-rotistudio' ),
+		esc_html__( 'Preview', 'web-safe-fonts-for-editor-by-rotistudio' ),
+		esc_html__( 'Alternative font', 'web-safe-fonts-for-editor-by-rotistudio' ),
+		esc_html( $rswsfg_mobile_label ),
+		esc_html( $rswsfg_desktop_label )
+	);
 
+	foreach ( $rswsfg_fonts as $rswsfg_slug => $rswsfg_font ) {
 		$rswsfg_alt_span = sprintf(
 			'<span style="font-family:\'%1$s\'">%2$s</span>',
 			esc_attr( $rswsfg_font['altName'] ),
@@ -470,18 +632,28 @@ function rswsfg_render_font_checkboxes() {
 		);
 
 		printf(
-			'<label style="padding: 3px 0; font-size: 16px;">'
-			. '<input type="checkbox" name="rswsfg_active_fonts[]" value="%1$s"%2$s> '
-			. '<span style="min-width: 170px; display: inline-block; padding-left: 10px; font-family:%3$s">%4$s</span>'
-			. ' <span>%5$s</span>'
-			. '</label><hr>',
+			'<tr>'
+			. '<td><label class="rswsfg-font-name"><input type="checkbox" name="rswsfg_active_fonts[]" value="%1$s"%2$s><span style="font-family:%3$s">%4$s</span></label></td>'
+			. '<td class="rswsfg-font-preview" style="font-family:%3$s"></td>'
+			. '<td>%5$s</td>'
+			. '<td class="rswsfg-font-preload"><input type="checkbox" name="rswsfg_preload_mobile_fonts[]" value="%1$s" aria-label="%6$s"%7$s></td>'
+			. '<td class="rswsfg-font-preload"><input type="checkbox" name="rswsfg_preload_desktop_fonts[]" value="%1$s" aria-label="%8$s"%9$s></td>'
+			. '</tr>',
 			esc_attr( $rswsfg_slug ),
-			checked( $rswsfg_checked, true, false ),
+			checked( in_array( $rswsfg_slug, $rswsfg_active_slugs, true ), true, false ),
 			esc_attr( $rswsfg_font['fontFamily'] ),
 			esc_html( $rswsfg_font['name'] ),
-			$rswsfg_alt_info // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sanitized via wp_kses().
+			$rswsfg_alt_info, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sanitized via wp_kses().
+			/* translators: 1: preload column label, 2: font name. */
+			esc_attr( sprintf( _x( '%1$s: %2$s', 'Preload checkbox label. 1: column label, 2: font name', 'web-safe-fonts-for-editor-by-rotistudio' ), $rswsfg_mobile_label, $rswsfg_font['name'] ) ),
+			checked( in_array( $rswsfg_slug, $rswsfg_mobile_slugs, true ), true, false ),
+			/* translators: 1: preload column label, 2: font name. */
+			esc_attr( sprintf( _x( '%1$s: %2$s', 'Preload checkbox label. 1: column label, 2: font name', 'web-safe-fonts-for-editor-by-rotistudio' ), $rswsfg_desktop_label, $rswsfg_font['name'] ) ),
+			checked( in_array( $rswsfg_slug, $rswsfg_desktop_slugs, true ), true, false )
 		);
 	}
+
+	echo '</tbody></table>';
 }
 
 /**
@@ -490,7 +662,7 @@ function rswsfg_render_font_checkboxes() {
  * @param mixed $rswsfg_input Raw submitted value.
  * @return array<int, string> Validated font slugs.
  */
-function rswsfg_sanitize_active_fonts( $rswsfg_input ) {
+function rswsfg_sanitize_font_slugs( $rswsfg_input ) {
 	if ( ! is_array( $rswsfg_input ) ) {
 		return array();
 	}

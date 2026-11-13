@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Web-Safe Fonts for Editor by RotiStudio 1.2.0\n"
+"Project-Id-Version: Web-Safe Fonts for Editor by RotiStudio 1.3.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/web-safe-fonts-for-editor-by-rotistudio\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -23,26 +23,27 @@ msgstr "Web-Safe Betűtípusok a Szerkesztőhöz"
 msgid "Add the option to choose web safe fonts in the WordPress block editor (Gutenberg), so your website can be faster and more consistent appearance."
 msgstr "Használj biztos, letöltést nem igénylő betűtípust a WordPress blokk szerkesztőben, hogy weboldalad gyorsabb legyen és egységesebb megjelenést adjon."
 
-#: web-safe-fonts-for-editor-by-rotistudio.php:403
+#: web-safe-fonts-for-editor-by-rotistudio.php:478
+#: web-safe-fonts-for-editor-by-rotistudio.php:527
 msgid "Web Safe Fonts"
 msgstr "Web-Safe Betűtípusok"
 
-#: web-safe-fonts-for-editor-by-rotistudio.php:418
+#: web-safe-fonts-for-editor-by-rotistudio.php:544
 msgid "Select which web safe fonts should be available in the WordPress block editor."
 msgstr "Válaszd ki, hogy mely betűtípus(oka)t szeretnéd használni a szerkesztőben."
 
-#: web-safe-fonts-for-editor-by-rotistudio.php:452
+#: web-safe-fonts-for-editor-by-rotistudio.php:614
 msgid "license"
 msgstr "licencdokumentum"
 
 #. translators: 1: alternative font name with inline style (HTML), 2: license link (HTML)
-#: web-safe-fonts-for-editor-by-rotistudio.php:458
+#: web-safe-fonts-for-editor-by-rotistudio.php:620
 #, php-format
 msgctxt "Alternative font info. 1: font name with style, 2: license link"
 msgid "(Alternative: %1$s &ndash; %2$s)"
 msgstr "(Alternatíva: %1$s &ndash; %2$s)"
 
-#: web-safe-fonts-for-editor-by-rotistudio.php:515
+#: web-safe-fonts-for-editor-by-rotistudio.php:687
 msgid "Settings"
 msgstr "Beállítások"
 
@@ -60,3 +61,45 @@ msgstr ""
 #: web-safe-fonts-for-editor-by-rotistudio.php
 msgid "https://rotistudio.com"
 msgstr ""
+
+#: web-safe-fonts-for-editor-by-rotistudio.php:556
+msgid "Preview text"
+msgstr "Mintaszöveg"
+
+#. translators: %d: maximum number of characters.
+#: web-safe-fonts-for-editor-by-rotistudio.php:561
+#, php-format
+msgid "Type up to %d characters to see them in every font below. The text is not saved."
+msgstr "Írj be legfeljebb %d karaktert, és az alábbi betűtípusok mindegyikével megjelenik. A szöveget nem mentjük el."
+
+#: web-safe-fonts-for-editor-by-rotistudio.php:549
+msgid "Preload: the font file of a selected font is requested early, in the page head, on the chosen device type. Turn it on only for fonts used on most pages. Desktop devices usually have these fonts installed, so a preload is rarely needed there."
+msgstr "Előtöltés: a kiválasztott betűtípus fájlja korán, az oldal fejlécében töltődik be a megadott eszköztípuson. Csak a legtöbb oldalon használt betűtípusoknál kapcsold be. Asztali gépeken ezek a betűtípusok általában telepítve vannak, ott ritkán van rá szükség."
+
+#: web-safe-fonts-for-editor-by-rotistudio.php:582
+msgid "Preload on mobile"
+msgstr "Előtöltés mobilon"
+
+#: web-safe-fonts-for-editor-by-rotistudio.php:583
+msgid "Preload on desktop"
+msgstr "Előtöltés asztali gépen"
+
+#: web-safe-fonts-for-editor-by-rotistudio.php:597
+msgid "Font"
+msgstr "Betűtípus"
+
+#: web-safe-fonts-for-editor-by-rotistudio.php:598
+msgid "Preview"
+msgstr "Előnézet"
+
+#: web-safe-fonts-for-editor-by-rotistudio.php:599
+msgid "Alternative font"
+msgstr "Helyettesítő betűtípus"
+
+#. translators: 1: preload column label, 2: font name.
+#: web-safe-fonts-for-editor-by-rotistudio.php:648
+#: web-safe-fonts-for-editor-by-rotistudio.php:651
+#, php-format
+msgctxt "Preload checkbox label. 1: column label, 2: font name"
+msgid "%1$s: %2$s"
+msgstr "%1$s: %2$s"

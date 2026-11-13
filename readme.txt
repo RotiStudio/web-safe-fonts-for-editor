@@ -4,7 +4,7 @@ Tags: fonts, typography, gutenberg, block editor, editor
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://rotistudio.com/contact/
@@ -91,8 +91,16 @@ Yes. The plugin uses the standard `wp_theme_json_data_theme` filter, which is th
 
 = Why can’t I see the fonts? =
 
-First, go to Dashboard / Settings / Writing, select the desired font checkbox, and save.
-Then go to Dashboard / Appearance / Editor / Styles / Typography, and the Fonts list, and activate the required variant.
+Go to Dashboard / Settings / Writing, select the desired font checkbox, and save. The font then appears in the Typography panel font list, there is nothing else to activate.
+If a font is still missing, open Dashboard / Appearance / Editor / Styles / Typography / Fonts and check that it has not been deactivated there.
+
+= What do the Preload checkboxes do? =
+
+The font file of a selected font is requested early, in the page head, so the text is styled sooner. You can turn it on separately for mobile and for desktop devices. Turn it on only for fonts used on most pages; desktop devices usually have these fonts installed, so a preload is rarely needed there. It works only for fonts that are selected too.
+
+= Can I try the fonts with my own text? =
+
+Yes. Type up to 60 characters into the Preview text field on Dashboard / Settings / Writing and every font row shows it. The text is not saved.
 
 = Can I change the font-display value? =
 
@@ -106,6 +114,9 @@ Yes. By default the plugin uses `font-display: swap`. Developers can override it
 
 == Upgrade Notice ==
 
+= 1.3.0 =
+* Fixes the theme's own fonts disappearing and installed fonts being replaced. Requires WordPress 6.5.
+
 = 1.2.0 =
 * font-display swap, developer filter, duplicate font-face fix.
 * Tested up to WordPress 7.1.
@@ -118,6 +129,16 @@ Yes. By default the plugin uses `font-display: swap`. Developers can override it
 * Initial release.
 
 == Changelog ==
+
+= 1.3.0 =
+* Fix: the theme's own font families are no longer removed.
+* Fix: fonts installed on the device are no longer replaced by downloaded files.
+* Fix: Arial Black, Tahoma and MS Sans Serif load the alternative shown on the settings page.
+* Add Preload on mobile and Preload on desktop checkboxes per font; preloading is off by default.
+* Add a Web Safe Fonts link to the Appearance / Fonts screen (WordPress 7.0+).
+* Add a Preview text field to try the fonts with your own text.
+* Remove unused font files.
+* Requires WordPress 6.5.
 
 = 1.2.0 =
 * Use font-display: swap by default.
