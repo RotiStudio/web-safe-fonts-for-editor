@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Web-Safe Fonts for Editor by RotiStudio 1.3.0\n"
+"Project-Id-Version: Web-Safe Fonts for Editor by RotiStudio 1.3.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/web-safe-fonts-for-editor-by-rotistudio\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-13T19:59:30+00:00\n"
+"POT-Creation-Date: 2026-11-14T11:27:19+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: web-safe-fonts-for-editor-by-rotistudio\n"
@@ -26,7 +26,7 @@ msgstr ""
 
 #. Description of the plugin
 #: web-safe-fonts-for-editor-by-rotistudio.php
-msgid "Add the option to choose web safe fonts in the WordPress block editor (Gutenberg), so your website can be faster and more consistent appearance."
+msgid "Adds web-safe fonts to the WordPress block editor (Gutenberg), so your website loads faster and looks more consistent."
 msgstr ""
 
 #. Author of the plugin
@@ -39,68 +39,62 @@ msgstr ""
 msgid "https://rotistudio.com"
 msgstr ""
 
-#: web-safe-fonts-for-editor-by-rotistudio.php:478
-#: web-safe-fonts-for-editor-by-rotistudio.php:527
-msgid "Web Safe Fonts"
+#: web-safe-fonts-for-editor-by-rotistudio.php:495
+#: web-safe-fonts-for-editor-by-rotistudio.php:555
+msgid "Web-Safe Fonts"
 msgstr ""
 
-#: web-safe-fonts-for-editor-by-rotistudio.php:544
-msgid "Select which web safe fonts should be available in the WordPress block editor."
+#: web-safe-fonts-for-editor-by-rotistudio.php:572
+msgid "Select which web-safe fonts should be available in the WordPress block editor."
 msgstr ""
 
-#: web-safe-fonts-for-editor-by-rotistudio.php:549
+#: web-safe-fonts-for-editor-by-rotistudio.php:577
 msgid "Preload: the font file of a selected font is requested early, in the page head, on the chosen device type. Turn it on only for fonts used on most pages. Desktop devices usually have these fonts installed, so a preload is rarely needed there."
 msgstr ""
 
-#: web-safe-fonts-for-editor-by-rotistudio.php:556
+#: web-safe-fonts-for-editor-by-rotistudio.php:584
 msgid "Preview text"
 msgstr ""
 
 #. translators: %d: maximum number of characters.
-#: web-safe-fonts-for-editor-by-rotistudio.php:561
+#: web-safe-fonts-for-editor-by-rotistudio.php:589
 #, php-format
 msgid "Type up to %d characters to see them in every font below. The text is not saved."
 msgstr ""
 
-#: web-safe-fonts-for-editor-by-rotistudio.php:582
+#: web-safe-fonts-for-editor-by-rotistudio.php:610
 msgid "Preload on mobile"
 msgstr ""
 
-#: web-safe-fonts-for-editor-by-rotistudio.php:583
+#: web-safe-fonts-for-editor-by-rotistudio.php:611
 msgid "Preload on desktop"
 msgstr ""
 
-#: web-safe-fonts-for-editor-by-rotistudio.php:597
+#: web-safe-fonts-for-editor-by-rotistudio.php:625
 msgid "Font"
 msgstr ""
 
-#: web-safe-fonts-for-editor-by-rotistudio.php:598
+#: web-safe-fonts-for-editor-by-rotistudio.php:626
 msgid "Preview"
 msgstr ""
 
-#: web-safe-fonts-for-editor-by-rotistudio.php:599
+#: web-safe-fonts-for-editor-by-rotistudio.php:627
 msgid "Alternative font"
 msgstr ""
 
-#: web-safe-fonts-for-editor-by-rotistudio.php:614
+#: web-safe-fonts-for-editor-by-rotistudio.php:648
+msgctxt "link to the license text of the alternative font"
 msgid "license"
 msgstr ""
 
-#. translators: 1: alternative font name with inline style (HTML), 2: license link (HTML)
-#: web-safe-fonts-for-editor-by-rotistudio.php:620
-#, php-format
-msgctxt "Alternative font info. 1: font name with style, 2: license link"
-msgid "(Alternative: %1$s &ndash; %2$s)"
-msgstr ""
-
 #. translators: 1: preload column label, 2: font name.
-#: web-safe-fonts-for-editor-by-rotistudio.php:648
-#: web-safe-fonts-for-editor-by-rotistudio.php:651
+#: web-safe-fonts-for-editor-by-rotistudio.php:650
+#: web-safe-fonts-for-editor-by-rotistudio.php:653
 #, php-format
-msgctxt "Preload checkbox label. 1: column label, 2: font name"
+msgctxt "preload checkbox label"
 msgid "%1$s: %2$s"
 msgstr ""
 
-#: web-safe-fonts-for-editor-by-rotistudio.php:687
+#: web-safe-fonts-for-editor-by-rotistudio.php:689
 msgid "Settings"
 msgstr ""

@@ -8,7 +8,7 @@
  * - safeFamily: family name of the plugin's own @font-face rules.
  * - altName: open-source alternative used when the font is not installed.
  * - altFile: regular woff2 file of the alternative, for the admin preview.
- * - licenseFile: licence file of the alternative in assets/licences/.
+ * - licenseFile: license file of the alternative in assets/licences/.
  * - faces: face variants (weight, style, local font names, woff2 file).
  *
  * @package Web_Safe_Fonts_for_Editor_by_RotiStudio

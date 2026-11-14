@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Web-Safe Fonts for Editor by RotiStudio
  * Plugin URI: https://rotistudio.com/plugins/web-safe-fonts-plugin-wordpress/
- * Description: Add the option to choose web safe fonts in the WordPress block editor (Gutenberg), so your website can be faster and more consistent appearance.
- * Version: 1.3.0
+ * Description: Adds web-safe fonts to the WordPress block editor (Gutenberg), so your website loads faster and looks more consistent.
+ * Version: 1.3.1
  * Requires at least: 6.5
  * Requires PHP: 7.4
  * Author: RotiStudio - Tamas Rottenbacher
  * Author URI: https://rotistudio.com
  * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: web-safe-fonts-for-editor-by-rotistudio
  * Domain Path: /languages
  *
@@ -19,12 +20,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RSWSFG_VERSION', '1.3.0' );
+define( 'RSWSFG_VERSION', '1.3.1' );
 define( 'RSWSFG_PREVIEW_MAX_LENGTH', 60 );
 define( 'RSWSFG_PATH', plugin_dir_path( __FILE__ ) );
 define( 'RSWSFG_URL', plugin_dir_url( __FILE__ ) );
 
 require_once RSWSFG_PATH . 'font-definitions.php';
+
+/**
+ * Loads the bundled translations on WordPress versions before 6.8.
+ *
+ * Since 6.8 core loads the translations from the Domain Path by itself.
+ *
+ * @return void
+ */
+function rswsfg_load_textdomain() {
+	if ( version_compare( get_bloginfo( 'version' ), '6.8', '<' ) ) {
+		// phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound -- Needed below WordPress 6.8, which does not load the bundled translations by itself.
+		load_plugin_textdomain( 'web-safe-fonts-for-editor-by-rotistudio', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+	}
+}
+add_action( 'init', 'rswsfg_load_textdomain', 10 );
 
 /**
  * Returns the font slugs saved in one of the plugin's options.
@@ -74,7 +90,7 @@ function rswsfg_get_active_fonts() {
 }
 
 /**
- * Adds the active web safe font families to the theme's own font families.
+ * Adds the active web-safe font families to the theme's own font families.
  *
  * Only the family stacks are registered. No fontFace is passed to theme.json,
  * because WordPress would print it under the first name of the stack (for
@@ -459,11 +475,12 @@ function rswsfg_enqueue_admin_assets() {
 add_action( 'admin_enqueue_scripts', 'rswsfg_enqueue_admin_assets', 20 );
 
 /**
- * Adds a "Web Safe Fonts" link after the tabs of the Appearance > Fonts screen.
+ * Adds a "Web-Safe Fonts" link after the tabs of the Appearance > Fonts screen.
  *
  * The screen (WordPress 7.0+) builds its tabs in JavaScript and has no
  * extension point, so a small script appends the link to the rendered tab
  * list. When the markup of the screen changes, the link is simply not added.
+ * The script loads in the head, right after its translated label.
  *
  * @param string $hook_suffix Current admin page.
  * @return void
@@ -475,7 +492,7 @@ function rswsfg_enqueue_font_library_link( $hook_suffix ) {
 
 	$rswsfg_data = array(
 		'url'   => admin_url( 'options-writing.php#rswsfg-fonts-section' ),
-		'label' => __( 'Web Safe Fonts', 'web-safe-fonts-for-editor-by-rotistudio' ),
+		'label' => __( 'Web-Safe Fonts', 'web-safe-fonts-for-editor-by-rotistudio' ),
 	);
 
 	$rswsfg_script = '( function () {'
@@ -494,18 +511,21 @@ function rswsfg_enqueue_font_library_link( $hook_suffix ) {
 		. 'list.appendChild( link );'
 		. '}'
 		. 'addLink();'
-		. 'new MutationObserver( addLink ).observe( document.body, { childList: true, subtree: true } );'
+		. 'new MutationObserver( addLink ).observe( document.documentElement, { childList: true, subtree: true } );'
 		. '} )();';
 
-	wp_register_script( 'rswsfg-font-library', false, array(), RSWSFG_VERSION, true );
+	wp_register_script( 'rswsfg-font-library', false, array(), RSWSFG_VERSION, false );
 	wp_enqueue_script( 'rswsfg-font-library' );
-	wp_add_inline_script( 'rswsfg-font-library', 'var rswsfgFontLibrary = ' . wp_json_encode( $rswsfg_data ) . ';', 'before' );
+	wp_add_inline_script( 'rswsfg-font-library', 'var rswsfgFontLibrary = ' . wp_json_encode( $rswsfg_data, JSON_HEX_TAG | JSON_HEX_AMP ) . ';', 'before' );
 	wp_add_inline_script( 'rswsfg-font-library', $rswsfg_script );
 }
 add_action( 'admin_enqueue_scripts', 'rswsfg_enqueue_font_library_link', 20 );
 
 /**
- * Register the settings and their section on the Writing settings page.
+ * Registers the settings of the Writing settings page.
+ *
+ * Runs on init, not only in the admin, so the sanitize callback also applies
+ * to values saved outside the settings page (WP-CLI, other code).
  *
  * @return void
  */
@@ -521,15 +541,23 @@ function rswsfg_register_settings() {
 			)
 		);
 	}
+}
+add_action( 'init', 'rswsfg_register_settings', 10 );
 
+/**
+ * Adds the plugin's section to the Writing settings page.
+ *
+ * @return void
+ */
+function rswsfg_add_settings_section() {
 	add_settings_section(
 		'rswsfg_fonts_section',
-		__( 'Web Safe Fonts', 'web-safe-fonts-for-editor-by-rotistudio' ),
+		__( 'Web-Safe Fonts', 'web-safe-fonts-for-editor-by-rotistudio' ),
 		'rswsfg_section_callback',
 		'writing'
 	);
 }
-add_action( 'admin_init', 'rswsfg_register_settings', 10 );
+add_action( 'admin_init', 'rswsfg_add_settings_section', 10 );
 
 /**
  * Renders the section description, the preview text field and the font rows.
@@ -541,7 +569,7 @@ add_action( 'admin_init', 'rswsfg_register_settings', 10 );
 function rswsfg_section_callback() {
 	printf(
 		'<p id="rswsfg-fonts-section">%s</p>',
-		esc_html__( 'Select which web safe fonts should be available in the WordPress block editor.', 'web-safe-fonts-for-editor-by-rotistudio' )
+		esc_html__( 'Select which web-safe fonts should be available in the WordPress block editor.', 'web-safe-fonts-for-editor-by-rotistudio' )
 	);
 
 	printf(
@@ -569,7 +597,7 @@ function rswsfg_section_callback() {
 
 /**
  * Renders the font table. One row per font: the font checkbox, the preview
- * text, the alternative font with its licence and the two preload checkboxes.
+ * text, the alternative font with its license and the two preload checkboxes.
  *
  * @return void
  */
@@ -577,7 +605,7 @@ function rswsfg_render_font_rows() {
 	$rswsfg_active_slugs  = rswsfg_get_active_font_slugs();
 	$rswsfg_mobile_slugs  = rswsfg_get_preload_font_slugs( 'mobile' );
 	$rswsfg_desktop_slugs = rswsfg_get_preload_font_slugs( 'desktop' );
-	$rswsfg_licences_url  = RSWSFG_URL . 'assets/licences/';
+	$rswsfg_licenses_url  = RSWSFG_URL . 'assets/licences/';
 	$rswsfg_fonts         = rswsfg_get_fonts();
 	$rswsfg_mobile_label  = __( 'Preload on mobile', 'web-safe-fonts-for-editor-by-rotistudio' );
 	$rswsfg_desktop_label = __( 'Preload on desktop', 'web-safe-fonts-for-editor-by-rotistudio' );
@@ -602,53 +630,27 @@ function rswsfg_render_font_rows() {
 	);
 
 	foreach ( $rswsfg_fonts as $rswsfg_slug => $rswsfg_font ) {
-		$rswsfg_alt_span = sprintf(
-			'<span style="font-family:\'%1$s\'">%2$s</span>',
-			esc_attr( $rswsfg_font['altName'] ),
-			esc_html( $rswsfg_font['altName'] )
-		);
-
-		$rswsfg_license_link = sprintf(
-			'<a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
-			esc_url( $rswsfg_licences_url . $rswsfg_font['licenseFile'] ),
-			esc_html__( 'license', 'web-safe-fonts-for-editor-by-rotistudio' )
-		);
-
-		$rswsfg_alt_info = wp_kses(
-			sprintf(
-				/* translators: 1: alternative font name with inline style (HTML), 2: license link (HTML) */
-				_x( '(Alternative: %1$s &ndash; %2$s)', 'Alternative font info. 1: font name with style, 2: license link', 'web-safe-fonts-for-editor-by-rotistudio' ),
-				$rswsfg_alt_span,
-				$rswsfg_license_link
-			),
-			array(
-				'span' => array( 'style' => true ),
-				'a'    => array(
-					'href'   => true,
-					'target' => true,
-					'rel'    => true,
-				),
-			)
-		);
-
 		printf(
 			'<tr>'
 			. '<td><label class="rswsfg-font-name"><input type="checkbox" name="rswsfg_active_fonts[]" value="%1$s"%2$s><span style="font-family:%3$s">%4$s</span></label></td>'
 			. '<td class="rswsfg-font-preview" style="font-family:%3$s"></td>'
-			. '<td>%5$s</td>'
-			. '<td class="rswsfg-font-preload"><input type="checkbox" name="rswsfg_preload_mobile_fonts[]" value="%1$s" aria-label="%6$s"%7$s></td>'
-			. '<td class="rswsfg-font-preload"><input type="checkbox" name="rswsfg_preload_desktop_fonts[]" value="%1$s" aria-label="%8$s"%9$s></td>'
+			. '<td><span style="font-family:\'%5$s\'">%6$s</span> &ndash; <a href="%7$s" target="_blank" rel="noopener noreferrer">%8$s</a></td>'
+			. '<td class="rswsfg-font-preload"><input type="checkbox" name="rswsfg_preload_mobile_fonts[]" value="%1$s" aria-label="%9$s"%10$s></td>'
+			. '<td class="rswsfg-font-preload"><input type="checkbox" name="rswsfg_preload_desktop_fonts[]" value="%1$s" aria-label="%11$s"%12$s></td>'
 			. '</tr>',
 			esc_attr( $rswsfg_slug ),
 			checked( in_array( $rswsfg_slug, $rswsfg_active_slugs, true ), true, false ),
 			esc_attr( $rswsfg_font['fontFamily'] ),
 			esc_html( $rswsfg_font['name'] ),
-			$rswsfg_alt_info, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sanitized via wp_kses().
+			esc_attr( $rswsfg_font['altName'] ),
+			esc_html( $rswsfg_font['altName'] ),
+			esc_url( $rswsfg_licenses_url . $rswsfg_font['licenseFile'] ),
+			esc_html_x( 'license', 'link to the license text of the alternative font', 'web-safe-fonts-for-editor-by-rotistudio' ),
 			/* translators: 1: preload column label, 2: font name. */
-			esc_attr( sprintf( _x( '%1$s: %2$s', 'Preload checkbox label. 1: column label, 2: font name', 'web-safe-fonts-for-editor-by-rotistudio' ), $rswsfg_mobile_label, $rswsfg_font['name'] ) ),
+			esc_attr( sprintf( _x( '%1$s: %2$s', 'preload checkbox label', 'web-safe-fonts-for-editor-by-rotistudio' ), $rswsfg_mobile_label, $rswsfg_font['name'] ) ),
 			checked( in_array( $rswsfg_slug, $rswsfg_mobile_slugs, true ), true, false ),
 			/* translators: 1: preload column label, 2: font name. */
-			esc_attr( sprintf( _x( '%1$s: %2$s', 'Preload checkbox label. 1: column label, 2: font name', 'web-safe-fonts-for-editor-by-rotistudio' ), $rswsfg_desktop_label, $rswsfg_font['name'] ) ),
+			esc_attr( sprintf( _x( '%1$s: %2$s', 'preload checkbox label', 'web-safe-fonts-for-editor-by-rotistudio' ), $rswsfg_desktop_label, $rswsfg_font['name'] ) ),
 			checked( in_array( $rswsfg_slug, $rswsfg_desktop_slugs, true ), true, false )
 		);
 	}
