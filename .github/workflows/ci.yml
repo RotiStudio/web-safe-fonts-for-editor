@@ -1,0 +1,59 @@
+# Checks every pull request and every change on main. The results show up as a green tick or a red cross on the
+# pull request; nothing is released or deployed from here.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: PHPCS (WordPress Coding Standards, PHP 7.4+ compatibility)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer
+      - run: composer install --no-progress --prefer-dist
+      - run: composer lint
+
+  test:
+    name: PHPUnit (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer
+      - run: composer install --no-progress --prefer-dist
+      - name: PHP syntax
+        run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l > /dev/null
+      - run: composer test
+
+  plugin-check:
+    name: Plugin Check (the files that ship)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Copy the files that ship, without those listed in .distignore
+        run: |
+          mkdir -p dist-check/web-safe-fonts-for-editor-by-rotistudio
+          rsync -a --exclude-from=.distignore --exclude=/dist-check ./ dist-check/web-safe-fonts-for-editor-by-rotistudio/
+      - uses: wordpress/plugin-check-action@v1
+        with:
+          build-dir: dist-check/web-safe-fonts-for-editor-by-rotistudio
+          slug: web-safe-fonts-for-editor-by-rotistudio

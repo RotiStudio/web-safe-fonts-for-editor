@@ -1,0 +1,16 @@
+# Files that are not part of the plugin release (the zip and the wordpress.org SVN copy).
+/.git
+/.github
+/.gitattributes
+/.gitignore
+/.distignore
+/.editorconfig
+/.phpunit.cache
+/vendor
+/tests
+/composer.json
+/composer.lock
+/phpunit.xml.dist
+/README.md
+/CONTRIBUTING.md
+/SECURITY.md
