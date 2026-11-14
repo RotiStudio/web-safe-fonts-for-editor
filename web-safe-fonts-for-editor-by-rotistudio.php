@@ -3,7 +3,7 @@
  * Plugin Name: Web-Safe Fonts for Editor by RotiStudio
  * Plugin URI: https://rotistudio.com/plugins/web-safe-fonts-plugin-wordpress/
  * Description: Adds web-safe fonts to the WordPress block editor (Gutenberg), so your website loads faster and looks more consistent.
- * Version: 1.3.1
+ * Version: 1.3.0
  * Requires at least: 6.5
  * Requires PHP: 7.4
  * Author: RotiStudio - Tamas Rottenbacher
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RSWSFG_VERSION', '1.3.1' );
+define( 'RSWSFG_VERSION', '1.3.0' );
 define( 'RSWSFG_PREVIEW_MAX_LENGTH', 60 );
 define( 'RSWSFG_PATH', plugin_dir_path( __FILE__ ) );
 define( 'RSWSFG_URL', plugin_dir_url( __FILE__ ) );

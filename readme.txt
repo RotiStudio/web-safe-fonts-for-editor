@@ -4,7 +4,7 @@ Tags: fonts, typography, gutenberg, block editor, editor
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.1
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://rotistudio.com/contact/
@@ -125,11 +125,8 @@ Yes. By default the plugin uses `font-display: swap`. Developers can override it
 
 == Upgrade Notice ==
 
-= 1.3.1 =
-* Security hardening and text improvements. The bundled translations now load on WordPress versions before 6.8.
-
 = 1.3.0 =
-* Fixes theme fonts disappearing and installed fonts being replaced. Requires WordPress 6.5.
+* Fixes theme fonts disappearing and installed fonts being replaced. Preloading is now set per font and is off by default. Requires WordPress 6.5.
 
 = 1.2.0 =
 * font-display swap, developer filter, duplicate font-face fix.
@@ -144,20 +141,18 @@ Yes. By default the plugin uses `font-display: swap`. Developers can override it
 
 == Changelog ==
 
-= 1.3.1 =
-* Security hardening: the settings are sanitized on every save path and translatable texts no longer carry HTML.
-* Load the bundled translations on WordPress versions before 6.8.
-* Show the alternative font and its license link in their own column, without the repeated label.
-* Improve the English and Hungarian texts.
-* List the bundled fonts and their licenses in the readme.
-
 = 1.3.0 =
 * Fix: the theme's own font families are no longer removed.
 * Fix: fonts installed on the device are no longer replaced by downloaded files.
 * Fix: Arial Black, Tahoma and MS Sans Serif load the alternative shown on the settings page.
 * Add Preload on mobile and Preload on desktop checkboxes per font; preloading is off by default.
-* Add a Web-Safe Fonts link to the Appearance > Fonts screen (WordPress 7.0+).
 * Add a Preview text field to try the fonts with your own text.
+* Add a Web-Safe Fonts link to the Appearance > Fonts screen (WordPress 7.0+).
+* Show the fonts as a table, with the alternative font and its license link in their own column.
+* Security hardening: the settings are sanitized on every save path and translatable texts no longer carry HTML.
+* Load the bundled translations on WordPress versions before 6.8.
+* Improve the English and Hungarian texts.
+* List the bundled fonts and their licenses in the readme.
 * Remove unused font files.
 * Requires WordPress 6.5.
 

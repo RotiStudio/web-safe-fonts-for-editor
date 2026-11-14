@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Web-Safe Fonts for Editor by RotiStudio 1.3.1\n"
+"Project-Id-Version: Web-Safe Fonts for Editor by RotiStudio 1.3.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/web-safe-fonts-for-editor-by-rotistudio\n"
 "Last-Translator: RotiStudio - Tamas Rottenbacher\n"
 "Language-Team: \n"
