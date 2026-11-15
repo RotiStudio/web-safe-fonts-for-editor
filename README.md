@@ -204,3 +204,8 @@ The plugin creates no tables, post meta or user meta. These options stay in the 
 ### 1.0.0
 
 * Initial release. 15 web-safe font families added to the WordPress block editor.
+
+## Support
+
+- RotiStudio.com/support - Official
+- WordPress.org Plugin Support forum
