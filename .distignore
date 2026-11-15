@@ -11,6 +11,7 @@
 /composer.json
 /composer.lock
 /phpunit.xml.dist
+/patchwork.json
 /README.md
 /CONTRIBUTING.md
 /SECURITY.md

@@ -8,6 +8,7 @@
 /composer.json export-ignore
 /composer.lock export-ignore
 /phpunit.xml.dist export-ignore
+/patchwork.json export-ignore
 /CONTRIBUTING.md export-ignore
 /SECURITY.md export-ignore
 

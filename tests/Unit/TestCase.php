@@ -32,6 +32,8 @@ abstract class TestCase extends PHPUnitTestCase {
 	 * @return void
 	 */
 	protected function tearDown(): void {
+		// Mockery expectations (Functions\expect()) count as assertions.
+		$this->addToAssertionCount( \Mockery::getContainer()->mockery_getExpectationCount() );
 		Monkey\tearDown();
 		parent::tearDown();
 	}
