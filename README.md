@@ -1,6 +1,6 @@
 <!-- Generated from readme.txt by ~/rotistudio-wp/bin/readme-md. Edit readme.txt, not this file. -->
 
-![Web-Safe Fonts for Editor by RotiStudio](https://ps.w.org/web-safe-fonts-for-editor-by-rotistudio/assets/banner-1544x500.png)
+![Web-Safe Fonts for Editor by RotiStudio](.wordpress-org/banner-1544x500.png)
 
 # Web-Safe Fonts for Editor by RotiStudio
 
@@ -126,19 +126,29 @@ Yes. Type up to 60 characters into the Preview text field on Settings > Writing 
 
 Yes. By default the plugin uses `font-display: swap`. Developers can override it with the `rswsfg_font_display` filter (`auto`, `block`, `swap`, `fallback`, or `optional`).
 
+### What does the plugin store in the database?
+
+Only three small options in the `wp_options` table (the table prefix may differ on your site), each a list of font slugs such as `arial`:
+
+* `rswsfg_active_fonts` - the fonts enabled on Settings > Writing.
+* `rswsfg_preload_mobile_fonts` - the fonts preloaded on mobile devices.
+* `rswsfg_preload_desktop_fonts` - the fonts preloaded on desktop devices.
+
+The plugin creates no tables, post meta or user meta. These options stay in the database when you delete the plugin, so your choices come back if you install it again. To remove them, delete the three options, for example with WP-CLI: `wp option delete rswsfg_active_fonts rswsfg_preload_mobile_fonts rswsfg_preload_desktop_fonts`.
+
 ## Screenshots
 
 1. Web-safe fonts listed in the block editor Typography panel.
 
-   ![Web-safe fonts listed in the block editor Typography panel.](https://ps.w.org/web-safe-fonts-for-editor-by-rotistudio/assets/screenshot-1.png)
+   ![Web-safe fonts listed in the block editor Typography panel.](.wordpress-org/screenshot-1.png)
 
 2. A heading block with a web-safe font applied in the editor.
 
-   ![A heading block with a web-safe font applied in the editor.](https://ps.w.org/web-safe-fonts-for-editor-by-rotistudio/assets/screenshot-2.png)
+   ![A heading block with a web-safe font applied in the editor.](.wordpress-org/screenshot-2.png)
 
 3. The options to enable the fonts.
 
-   ![The options to enable the fonts.](https://ps.w.org/web-safe-fonts-for-editor-by-rotistudio/assets/screenshot-3.png)
+   ![The options to enable the fonts.](.wordpress-org/screenshot-3.png)
 
 ## Upgrade Notice
 
@@ -194,3 +204,8 @@ Yes. By default the plugin uses `font-display: swap`. Developers can override it
 ### 1.0.0
 
 * Initial release. 15 web-safe font families added to the WordPress block editor.
+
+## Support
+
+- RotiStudio.com/support - Official
+- WordPress.org Plugin Support forum

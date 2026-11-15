@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Support question
+    url: https://wordpress.org/support/plugin/web-safe-fonts-for-editor-by-rotistudio/
+    about: Questions about using the plugin are answered on the WordPress.org support forum.
+  - name: Security issue
+    url: https://github.com/RotiStudio/web-safe-fonts-for-editor/security/advisories/new
+    about: Report vulnerabilities privately, never in a public issue.

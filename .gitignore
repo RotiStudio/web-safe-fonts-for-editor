@@ -1,0 +1,4 @@
+/vendor/
+/.phpunit.cache/
+/dist-check/
+*.zip

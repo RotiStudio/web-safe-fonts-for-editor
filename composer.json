@@ -1,0 +1,35 @@
+{
+    "name": "rotistudio/web-safe-fonts-for-editor",
+    "description": "Adds web-safe fonts to the WordPress block editor.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "homepage": "https://rotistudio.com/plugins/web-safe-fonts-plugin-wordpress/",
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "brain/monkey": "^2.6",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "phpunit/phpunit": "^9.6",
+        "wp-coding-standards/wpcs": "^3.1"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "RotiStudio\\WebSafeFonts\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "platform": {
+            "php": "7.4.33"
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "lint": "phpcs --standard=WordPress,PHPCompatibilityWP --runtime-set testVersion 7.4- --runtime-set text_domain web-safe-fonts-for-editor-by-rotistudio --runtime-set prefixes rswsfg --extensions=php --ignore=*/vendor/*,*/dist-check/*,*/tests/*,*/index.php -s .",
+        "lint:fix": "phpcbf --standard=WordPress --runtime-set text_domain web-safe-fonts-for-editor-by-rotistudio --runtime-set prefixes rswsfg --extensions=php --ignore=*/vendor/*,*/dist-check/*,*/tests/*,*/index.php .",
+        "test": "phpunit"
+    }
+}
