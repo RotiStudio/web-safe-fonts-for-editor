@@ -1,6 +1,6 @@
 <!-- Generated from readme.txt by ~/rotistudio-wp/bin/readme-md. Edit readme.txt, not this file. -->
 
-![Web-Safe Fonts for Editor by RotiStudio](https://ps.w.org/web-safe-fonts-for-editor-by-rotistudio/assets/banner-1544x500.png)
+![Web-Safe Fonts for Editor by RotiStudio](.wordpress-org/banner-1544x500.png)
 
 # Web-Safe Fonts for Editor by RotiStudio
 
@@ -140,15 +140,15 @@ The plugin creates no tables, post meta or user meta. These options stay in the 
 
 1. Web-safe fonts listed in the block editor Typography panel.
 
-   ![Web-safe fonts listed in the block editor Typography panel.](https://ps.w.org/web-safe-fonts-for-editor-by-rotistudio/assets/screenshot-1.png)
+   ![Web-safe fonts listed in the block editor Typography panel.](.wordpress-org/screenshot-1.png)
 
 2. A heading block with a web-safe font applied in the editor.
 
-   ![A heading block with a web-safe font applied in the editor.](https://ps.w.org/web-safe-fonts-for-editor-by-rotistudio/assets/screenshot-2.png)
+   ![A heading block with a web-safe font applied in the editor.](.wordpress-org/screenshot-2.png)
 
 3. The options to enable the fonts.
 
-   ![The options to enable the fonts.](https://ps.w.org/web-safe-fonts-for-editor-by-rotistudio/assets/screenshot-3.png)
+   ![The options to enable the fonts.](.wordpress-org/screenshot-3.png)
 
 ## Upgrade Notice
 

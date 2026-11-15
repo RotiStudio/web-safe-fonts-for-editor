@@ -1,6 +1,7 @@
 # Files that are not part of the plugin release (the zip and the wordpress.org SVN copy).
 /.git
 /.github
+/.wordpress-org
 /.gitattributes
 /.gitignore
 /.distignore
